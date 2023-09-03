@@ -1,0 +1,11 @@
+[package]
+name = "cplibs-convex-hull"
+version = "0.1.0"
+authors = ["Masooka <masooka@live.com>"]
+edition = "2018"
+repository = "https://github.com/masooka/cplibs"
+license = "0BSD"
+publish = false
+
+[lib]
+name = "convex_hull"
