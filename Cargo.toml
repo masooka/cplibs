@@ -1,3 +1,3 @@
 [workspace]
-members = ["crates/geometry/*", "crates/string/*"]
+members = ["crates/geometry/*", "crates/graph/*", "crates/string/*"]
 resolver = "2"
