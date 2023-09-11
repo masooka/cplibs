@@ -1,5 +1,7 @@
 #![allow(clippy::type_complexity)]
 
+use std::ops::{Mul, Sub};
+
 /// Finds the convex hull of a set of points.
 ///
 /// This function takes a vector of points, a key function for sorting the
@@ -25,11 +27,14 @@
 /// let hull = convex_hull(points, |&(x, y)| (x, y), counterclockwise);
 /// assert_eq!(hull, vec![(0, 0), (4, 0), (3, 2), (2, 2)]);
 /// ```
-pub fn convex_hull<K: Ord>(
-    mut points: Vec<(i64, i64)>,
-    key: fn(&(i64, i64)) -> K,
-    turn_direction: fn(&(i64, i64), &(i64, i64), &(i64, i64)) -> bool,
-) -> Vec<(i64, i64)> {
+pub fn convex_hull<C, K: Ord>(
+    mut points: Vec<(C, C)>,
+    key: fn(&(C, C)) -> K,
+    turn_direction: fn(&(C, C), &(C, C), &(C, C)) -> bool,
+) -> Vec<(C, C)>
+where
+    C: Copy + 'static,
+{
     points.sort_unstable_by_key(key);
 
     let mut hull = half_hull(&points, turn_direction);
@@ -41,26 +46,41 @@ pub fn convex_hull<K: Ord>(
 }
 
 /// Determines if three points make a clockwise turn.
-pub fn clockwise(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> bool {
-    cross_product(o, a, b) < 0
+pub fn clockwise<C>(o: &(C, C), a: &(C, C), b: &(C, C)) -> bool
+where
+    C: Copy + Default + Sub<Output = C> + Mul<Output = C> + PartialOrd,
+{
+    cross_product(o, a, b) < C::default()
 }
 
 /// Determines if three points make a clockwise turn or are collinear.
-pub fn clockwise_or_collinear(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> bool {
-    cross_product(o, a, b) <= 0
+pub fn clockwise_or_collinear<C>(o: &(C, C), a: &(C, C), b: &(C, C)) -> bool
+where
+    C: Copy + Default + Sub<Output = C> + Mul<Output = C> + PartialOrd,
+{
+    cross_product(o, a, b) <= C::default()
 }
 
 /// Determines if three points make a counterclockwise turn.
-pub fn counterclockwise(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> bool {
-    cross_product(o, a, b) > 0
+pub fn counterclockwise<C>(o: &(C, C), a: &(C, C), b: &(C, C)) -> bool
+where
+    C: Copy + Default + Sub<Output = C> + Mul<Output = C> + PartialOrd,
+{
+    cross_product(o, a, b) > C::default()
 }
 
 /// Determines if three points make a counterclockwise turn or are collinear.
-pub fn counterclockwise_or_collinear(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> bool {
-    cross_product(o, a, b) >= 0
+pub fn counterclockwise_or_collinear<C>(o: &(C, C), a: &(C, C), b: &(C, C)) -> bool
+where
+    C: Copy + Default + Sub<Output = C> + Mul<Output = C> + PartialOrd,
+{
+    cross_product(o, a, b) >= C::default()
 }
 
-fn cross_product(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> i64 {
+fn cross_product<C>(o: &(C, C), a: &(C, C), b: &(C, C)) -> C
+where
+    C: Copy + Sub<Output = C> + Mul<Output = C>,
+{
     (a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0)
 }
 
@@ -80,14 +100,15 @@ fn cross_product(o: &(i64, i64), a: &(i64, i64), b: &(i64, i64)) -> i64 {
 /// let lower_hull = half_hull(&points, counterclockwise);
 /// assert_eq!(lower_hull, vec![(0, 0), (4, 0)]);
 /// ```
-pub fn half_hull<'a, I>(
+pub fn half_hull<'a, C, I>(
     points: I,
-    turn_direction: fn(&(i64, i64), &(i64, i64), &(i64, i64)) -> bool,
-) -> Vec<(i64, i64)>
+    turn_direction: fn(&(C, C), &(C, C), &(C, C)) -> bool,
+) -> Vec<(C, C)>
 where
-    I: IntoIterator<Item = &'a (i64, i64)>,
+    C: Copy + 'static,
+    I: IntoIterator<Item = &'a (C, C)>,
 {
-    let mut hull: Vec<(i64, i64)> = Vec::new();
+    let mut hull: Vec<(C, C)> = Vec::new();
 
     for &b in points {
         while hull.len() >= 2 {
