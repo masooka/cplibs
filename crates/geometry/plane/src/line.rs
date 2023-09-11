@@ -303,12 +303,20 @@ mod tests {
     }
 
     #[test]
-    fn debug() {
+    fn three_lines() {
         let segments = vec![
-            Segment((2.0, 501.0), (6.0, 501.0)),
-            Segment((5.0, 1000.0), (995.0, 1.0)),
-            Segment((1.0, 1.0), (1000.0, 1000.0)),
-            Segment((994.0, 500.0), (1001.0, 500.0)),
+            Segment((2.0, 5.0), (3.1, 5.0)),
+            Segment((3.0, 10.0), (9.0, 1.0)),
+            Segment((1.0, 1.0), (10.0, 10.0)),
+            Segment((8.0, 5.0), (10.1, 5.0)),
+        ];
+        let result = super::find_intersecting_segments(&segments);
+        assert!(result.is_some());
+
+        let segments = vec![
+            Segment((1.0, 4.0), (9.0, 0.0)),
+            Segment((0.0, 2.0), (10.0, 2.0)),
+            Segment((1.0, 0.0), (9.0, 4.0)),
         ];
         let result = super::find_intersecting_segments(&segments);
         assert!(result.is_some());
