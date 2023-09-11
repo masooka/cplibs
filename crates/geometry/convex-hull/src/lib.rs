@@ -27,7 +27,7 @@ use std::ops::{Mul, Sub};
 /// let hull = convex_hull(points, |&(x, y)| (x, y), counterclockwise);
 /// assert_eq!(hull, vec![(0, 0), (4, 0), (3, 2), (2, 2)]);
 /// ```
-pub fn convex_hull<C, K: Ord>(
+pub fn convex_hull<C, K: PartialOrd>(
     mut points: Vec<(C, C)>,
     key: fn(&(C, C)) -> K,
     turn_direction: fn(&(C, C), &(C, C), &(C, C)) -> bool,
@@ -35,7 +35,7 @@ pub fn convex_hull<C, K: Ord>(
 where
     C: Copy + 'static,
 {
-    points.sort_unstable_by_key(key);
+    points.sort_unstable_by(|a, b| key(a).partial_cmp(&key(b)).unwrap());
 
     let mut hull = half_hull(&points, turn_direction);
     hull.pop();
