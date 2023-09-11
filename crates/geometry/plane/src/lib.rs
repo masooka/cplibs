@@ -1,3 +1,5 @@
+pub mod line;
+
 /// Calculates the area of a polygon using the shoelace formula.
 ///
 /// # Examples
