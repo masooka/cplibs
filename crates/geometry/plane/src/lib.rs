@@ -10,7 +10,7 @@
 /// ```
 pub fn shoelace_formula(vertices: &[(f64, f64)]) -> f64 {
     if vertices.len() < 3 {
-        panic!("Invalid input: At least 3 vertices are required to form a polygon.");
+        return 0.0;
     }
 
     let mut sum1 = 0.0;
