@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 pub mod line;
 
 /// Calculates the area of a polygon using the shoelace formula.
@@ -25,4 +27,20 @@ pub fn shoelace_formula(vertices: &[(f64, f64)]) -> f64 {
     }
 
     ((sum1 - sum2).abs()) / 2.0
+}
+
+fn minf64(a: f64, b: f64) -> f64 {
+    match a.partial_cmp(&b) {
+        Some(Ordering::Less) | Some(Ordering::Equal) => a,
+        Some(Ordering::Greater) => b,
+        None => f64::NAN,
+    }
+}
+
+fn maxf64(a: f64, b: f64) -> f64 {
+    match a.partial_cmp(&b) {
+        Some(Ordering::Greater) | Some(Ordering::Equal) => a,
+        Some(Ordering::Less) => b,
+        None => f64::NAN,
+    }
 }
