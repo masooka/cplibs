@@ -23,7 +23,10 @@ impl Ord for Segment<f64> {
 impl Segment<f64> {
     fn partial_cmp_at_start(&self, other: &Self) -> Option<Ordering> {
         let x = maxf64(minf64(self.0 .0, self.1 .0), minf64(other.0 .0, other.1 .0));
-        self.y(x).partial_cmp(&other.y(x))
+        match self.y(x).partial_cmp(&other.y(x)) {
+            Some(Ordering::Equal) => Some(self.0 .0.partial_cmp(&other.0 .0).unwrap()),
+            other => other,
+        }
     }
 
     fn y(&self, x: f64) -> f64 {
@@ -61,6 +64,80 @@ where
         || o2 == zero && is_in_rectangle(q2, line1)
         || o3 == zero && is_in_rectangle(p1, line2)
         || o4 == zero && is_in_rectangle(q1, line2)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum IntersectionType {
+    None,           // Segments don't meet
+    Proper,         // Segments meet at one point other than endpoints
+    Collinear,      // Segments overlap and share more than one point
+    OneSided,       // One endpoint lies on the middle of the other segment
+    MutualEndpoint, // Segments meet at a mutual endpoint
+}
+
+/// Identifies the relationship between two line segments.
+#[must_use]
+pub fn relationship_between_segments<C>(seg1: Segment<C>, seg2: Segment<C>) -> IntersectionType
+where
+    C: Copy + Default + PartialEq + PartialOrd + Sub<Output = C> + Mul<Output = C>,
+{
+    let zero = C::default();
+    let (mut p1, mut q1) = (seg1.0, seg1.1);
+    let (mut p2, mut q2) = (seg2.0, seg2.1);
+
+    let o1 = cross_product(p1, q1, p2);
+    let o2 = cross_product(p1, q1, q2);
+    let o3 = cross_product(p2, q2, p1);
+    let o4 = cross_product(p2, q2, q1);
+
+    if (o1 > zero && o2 > zero)
+        || (o1 < zero && o2 < zero)
+        || (o3 > zero && o4 > zero)
+        || (o3 < zero && o4 < zero)
+    {
+        IntersectionType::None
+    } else if o1 > zero && o2 < zero
+        || o1 < zero && o2 > zero
+        || o3 > zero && o4 < zero
+        || o3 < zero && o4 > zero
+    {
+        IntersectionType::Proper
+    } else if o1 == zero && o2 == zero {
+        if p1 > q1 {
+            mem::swap(&mut p1, &mut q1);
+        }
+        if p2 > q2 {
+            mem::swap(&mut p2, &mut q2);
+        }
+        if p1 > p2 {
+            mem::swap(&mut p1, &mut p2);
+            mem::swap(&mut q1, &mut q2);
+        }
+        if p2 < q1 {
+            IntersectionType::Collinear
+        } else if p2 == q1 {
+            IntersectionType::MutualEndpoint
+        } else {
+            IntersectionType::None
+        }
+    } else {
+        if o3 == zero || o4 == zero {
+            mem::swap(&mut p1, &mut p2);
+            mem::swap(&mut q1, &mut q2);
+        }
+        if o2 == zero {
+            mem::swap(&mut p2, &mut q2)
+        }
+        if is_in_rectangle(p2, seg1) {
+            if p2 == p1 || p2 == q1 {
+                IntersectionType::MutualEndpoint
+            } else {
+                IntersectionType::OneSided
+            }
+        } else {
+            IntersectionType::None
+        }
+    }
 }
 
 /// Returns a positive value if `o`, `a`, and `b` make a counter-clockwise turn,
@@ -167,7 +244,17 @@ impl Ord for ActiveSegment {
     }
 }
 
+/// Finds the first pair of segments that have any point in common.
 pub fn find_intersecting_segments(segments: &[Segment<f64>]) -> Option<(usize, usize)> {
+    find_intersecting_segments_by(segments, do_intersect)
+}
+
+/// Finds the first pair of segments that share a point according to the given
+/// predicate.
+pub fn find_intersecting_segments_by(
+    segments: &[Segment<f64>],
+    do_intersect: fn(Segment<f64>, Segment<f64>) -> bool,
+) -> Option<(usize, usize)> {
     let mut events: Vec<Event> = Vec::new();
     for (i, &segment) in segments.iter().enumerate() {
         let Segment(mut p, mut q) = segment;
@@ -320,5 +407,81 @@ mod tests {
         ];
         let result = super::find_intersecting_segments(&segments);
         assert!(result.is_some());
+    }
+
+    #[test]
+    fn relationship_between_segments() {
+        // Segments on the same line not overlapping
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((6, 6), (10, 10));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::None
+        );
+
+        // Segments on the same line meet at exactly one endpoint
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((5, 5), (6, 6));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::MutualEndpoint
+        );
+
+        // Segments meet at one point other than endpoints
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((2, 5), (4, 1));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::Proper
+        );
+
+        // The first segment is contained in the second
+        let seg1 = Segment((1, 1), (2, 2));
+        let seg2 = Segment((0, 0), (3, 3));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::Collinear
+        );
+
+        // The second segment is contained in the first
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((2, 2), (4, 4));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::Collinear
+        );
+
+        // Collinear segments overlapping
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((2, 2), (6, 6));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::Collinear
+        );
+
+        // Overlapping segments sharing an endpoint
+        let seg1 = Segment((0, 0), (1, 1));
+        let seg2 = Segment((0, 0), (2, 2));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::Collinear
+        );
+    }
+
+    #[test]
+    fn find_intersecting_segments_by() {
+        let segments = vec![
+            Segment((0.0, 0.0), (1.0, 1.0)),
+            Segment((1.0, 1.0), (2.0, 2.0)),
+        ];
+        let result = super::find_intersecting_segments_by(&segments, |a, b| {
+            matches!(
+                super::relationship_between_segments(a, b),
+                super::IntersectionType::Proper
+                    | super::IntersectionType::Collinear
+                    | super::IntersectionType::OneSided
+            )
+        });
+        assert!(result.is_none());
     }
 }
