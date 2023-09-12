@@ -23,10 +23,7 @@ impl Ord for Segment<f64> {
 impl Segment<f64> {
     fn partial_cmp_at_start(&self, other: &Self) -> Option<Ordering> {
         let x = maxf64(minf64(self.0 .0, self.1 .0), minf64(other.0 .0, other.1 .0));
-        match self.y(x).partial_cmp(&other.y(x)) {
-            Some(Ordering::Equal) => Some(self.0 .0.partial_cmp(&other.0 .0).unwrap()),
-            other => other,
-        }
+        self.y(x).partial_cmp(&other.y(x))
     }
 
     fn y(&self, x: f64) -> f64 {
@@ -234,7 +231,10 @@ struct ActiveSegment {
 
 impl PartialOrd for ActiveSegment {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.segment.partial_cmp_at_start(&other.segment)
+        match self.segment.partial_cmp_at_start(&other.segment) {
+            Some(Ordering::Equal) => Some(self.id.cmp(&other.id)),
+            other => other,
+        }
     }
 }
 
@@ -473,6 +473,20 @@ mod tests {
         let segments = vec![
             Segment((0.0, 0.0), (1.0, 1.0)),
             Segment((1.0, 1.0), (2.0, 2.0)),
+        ];
+        let result = super::find_intersecting_segments_by(&segments, |a, b| {
+            matches!(
+                super::relationship_between_segments(a, b),
+                super::IntersectionType::Proper
+                    | super::IntersectionType::Collinear
+                    | super::IntersectionType::OneSided
+            )
+        });
+        assert!(result.is_none());
+
+        let segments = vec![
+            Segment((0.0, 0.0), (1.0, 1.0)),
+            Segment((0.0, 0.0), (1.0, 0.0)),
         ];
         let result = super::find_intersecting_segments_by(&segments, |a, b| {
             matches!(
