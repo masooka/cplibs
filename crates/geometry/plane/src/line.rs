@@ -124,7 +124,7 @@ where
             mem::swap(&mut p1, &mut q1);
             mem::swap(&mut p2, &mut q2);
         }
-        if is_in_rectangle(p2, seg1) {
+        if is_in_rectangle(p2, Segment(p1, q1)) {
             if p2 == p1 || p2 == q1 {
                 IntersectionType::MutualEndpoint
             } else {
@@ -480,6 +480,14 @@ mod tests {
         assert_eq!(
             super::relationship_between_segments(seg1, seg2),
             super::IntersectionType::MutualEndpoint
+        );
+
+        // First one's endpoint is on the same line as the secondd
+        let seg1 = Segment((0, 0), (4, 0));
+        let seg2 = Segment((4, 5), (4, 1));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::None
         );
     }
 
