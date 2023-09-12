@@ -44,3 +44,20 @@ fn maxf64(a: f64, b: f64) -> f64 {
         None => f64::NAN,
     }
 }
+
+fn cmpf64(a: f64, b: f64) -> Ordering {
+    match a.partial_cmp(&b) {
+        Some(ordering) => ordering,
+        None => {
+            if a.is_nan() {
+                if b.is_nan() {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
+                }
+            } else {
+                Ordering::Less
+            }
+        }
+    }
+}

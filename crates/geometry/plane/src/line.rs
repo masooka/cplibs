@@ -5,7 +5,7 @@ use std::{
     ops::{Mul, Sub},
 };
 
-use crate::{maxf64, minf64};
+use crate::{cmpf64, maxf64, minf64};
 
 type Point<C> = (C, C);
 
@@ -15,9 +15,9 @@ pub struct Segment<C>(pub Point<C>, pub Point<C>);
 impl Eq for Segment<f64> {}
 
 impl Segment<f64> {
-    fn partial_cmp_at_start(&self, other: &Self) -> Option<Ordering> {
+    fn cmp_at_start(&self, other: &Self) -> Ordering {
         let x = maxf64(minf64(self.0 .0, self.1 .0), minf64(other.0 .0, other.1 .0));
-        self.y(x).partial_cmp(&other.y(x))
+        cmpf64(self.y(x), other.y(x))
     }
 
     fn y(&self, x: f64) -> f64 {
@@ -197,17 +197,17 @@ struct Event {
 
 impl PartialOrd for Event {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if (self.x - other.x).abs() > f64::EPSILON {
-            self.x.partial_cmp(&other.x)
-        } else {
-            other.is_start.partial_cmp(&self.is_start)
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Event {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        if (self.x - other.x).abs() > f64::EPSILON {
+            cmpf64(self.x, other.x)
+        } else {
+            other.is_start.cmp(&self.is_start)
+        }
     }
 }
 
@@ -227,16 +227,16 @@ struct ActiveSegment {
 
 impl PartialOrd for ActiveSegment {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.segment.partial_cmp_at_start(&other.segment) {
-            Some(Ordering::Equal) => Some(self.id.cmp(&other.id)),
-            other => other,
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for ActiveSegment {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        match self.segment.cmp_at_start(&other.segment) {
+            Ordering::Equal => self.id.cmp(&other.id),
+            other => other,
+        }
     }
 }
 
