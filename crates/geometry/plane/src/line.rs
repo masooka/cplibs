@@ -9,16 +9,10 @@ use crate::{maxf64, minf64};
 
 type Point<C> = (C, C);
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Segment<C>(pub Point<C>, pub Point<C>);
 
 impl Eq for Segment<f64> {}
-
-impl Ord for Segment<f64> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0 .0.partial_cmp(&other.0 .0).unwrap()
-    }
-}
 
 impl Segment<f64> {
     fn partial_cmp_at_start(&self, other: &Self) -> Option<Ordering> {
