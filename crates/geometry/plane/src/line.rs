@@ -87,18 +87,16 @@ where
     let o3 = cross_product(p2, q2, p1);
     let o4 = cross_product(p2, q2, q1);
 
-    if (o1 > zero && o2 > zero)
-        || (o1 < zero && o2 < zero)
-        || (o3 > zero && o4 > zero)
-        || (o3 < zero && o4 < zero)
-    {
-        IntersectionType::None
-    } else if o1 > zero && o2 < zero
-        || o1 < zero && o2 > zero
-        || o3 > zero && o4 < zero
-        || o3 < zero && o4 > zero
-    {
-        IntersectionType::Proper
+    if o1 != zero && o2 != zero && o3 != zero && o4 != zero {
+        if (o1 > zero && o2 > zero)
+            || (o1 < zero && o2 < zero)
+            || (o3 > zero && o4 > zero)
+            || (o3 < zero && o4 < zero)
+        {
+            IntersectionType::None
+        } else {
+            IntersectionType::Proper
+        }
     } else if o1 == zero && o2 == zero {
         if p1 > q1 {
             mem::swap(&mut p1, &mut q1);
@@ -122,8 +120,9 @@ where
             mem::swap(&mut p1, &mut p2);
             mem::swap(&mut q1, &mut q2);
         }
-        if o2 == zero {
-            mem::swap(&mut p2, &mut q2)
+        if o2 == zero || o4 == zero {
+            mem::swap(&mut p1, &mut q1);
+            mem::swap(&mut p2, &mut q2);
         }
         if is_in_rectangle(p2, seg1) {
             if p2 == p1 || p2 == q1 {
@@ -411,6 +410,14 @@ mod tests {
 
     #[test]
     fn relationship_between_segments() {
+        // Segments not parallel
+        let seg1 = Segment((1, 1), (5, 5));
+        let seg2 = Segment((0, 2), (0, 4));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::None
+        );
+
         // Segments on the same line not overlapping
         let seg1 = Segment((1, 1), (5, 5));
         let seg2 = Segment((6, 6), (10, 10));
@@ -465,6 +472,14 @@ mod tests {
         assert_eq!(
             super::relationship_between_segments(seg1, seg2),
             super::IntersectionType::Collinear
+        );
+
+        // Sharing one endpoint and not parallel
+        let seg1 = Segment((0, 0), (1, 1));
+        let seg2 = Segment((1, 1), (0, 1));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::MutualEndpoint
         );
     }
 
