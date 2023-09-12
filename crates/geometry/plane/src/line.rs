@@ -116,13 +116,16 @@ where
             IntersectionType::None
         }
     } else {
-        if o3 == zero || o4 == zero {
+        if o1 == zero || o2 == zero {
+            if o2 == zero {
+                mem::swap(&mut p2, &mut q2);
+            }
+        } else {
             mem::swap(&mut p1, &mut p2);
             mem::swap(&mut q1, &mut q2);
-        }
-        if o2 == zero || o4 == zero {
-            mem::swap(&mut p1, &mut q1);
-            mem::swap(&mut p2, &mut q2);
+            if o4 == zero {
+                mem::swap(&mut p2, &mut q2);
+            }
         }
         if is_in_rectangle(p2, Segment(p1, q1)) {
             if p2 == p1 || p2 == q1 {
@@ -488,6 +491,22 @@ mod tests {
         assert_eq!(
             super::relationship_between_segments(seg1, seg2),
             super::IntersectionType::None
+        );
+
+        // p1 and q2 are the same point
+        let seg1 = Segment((0, 0), (0, 1));
+        let seg2 = Segment((1, 0), (0, 0));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::MutualEndpoint
+        );
+
+        // q2 is on the same line as p1 q1
+        let seg1 = Segment((0, 1), (0, 0));
+        let seg2 = Segment((-1, 0), (2, 0));
+        assert_eq!(
+            super::relationship_between_segments(seg1, seg2),
+            super::IntersectionType::OneSided
         );
     }
 
