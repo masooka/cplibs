@@ -533,5 +533,49 @@ mod tests {
             )
         });
         assert!(result.is_none());
+
+        let segments = vec![
+            Segment((3.0, 0.0), (3.0, 3.0)),
+            Segment((3.0, 3.0), (3.0, 5.0)),
+            Segment((2.0, 3.0), (3.0, 0.0)),
+            Segment((3.0, 5.0), (2.0, 3.0)),
+        ];
+        let result = super::find_intersecting_segments_by(&segments, |a, b| {
+            matches!(
+                super::relationship_between_segments(a, b),
+                super::IntersectionType::Proper
+                    | super::IntersectionType::Collinear
+                    | super::IntersectionType::OneSided
+            )
+        });
+        assert!(result.is_none());
+
+        let segments = vec![
+            Segment((1.0, 1.0), (1.0, 6.0)),
+            Segment((0.0, 4.0), (1.0, 4.0)),
+        ];
+        let result = super::find_intersecting_segments_by(&segments, |a, b| {
+            matches!(
+                super::relationship_between_segments(a, b),
+                super::IntersectionType::Proper
+                    | super::IntersectionType::Collinear
+                    | super::IntersectionType::OneSided
+            )
+        });
+        assert!(result.is_some());
+
+        let segments = vec![
+            Segment((1.0, 1.0), (1.0, 6.0)),
+            Segment((8.0, 4.0), (1.0, 4.0)),
+        ];
+        let result = super::find_intersecting_segments_by(&segments, |a, b| {
+            matches!(
+                super::relationship_between_segments(a, b),
+                super::IntersectionType::Proper
+                    | super::IntersectionType::Collinear
+                    | super::IntersectionType::OneSided
+            )
+        });
+        assert!(result.is_some());
     }
 }
