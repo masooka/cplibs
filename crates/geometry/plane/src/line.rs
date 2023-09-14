@@ -136,7 +136,7 @@ where
 /// Returns a positive value if `o`, `a`, and `b` make a counter-clockwise turn,
 /// a negative value if they make a clockwise turn, and zero if they are
 /// collinear.
-fn cross_product<C>(o: (C, C), a: (C, C), b: (C, C)) -> C
+pub fn cross_product<C>(o: (C, C), a: (C, C), b: (C, C)) -> C
 where
     C: Copy + Sub<Output = C> + Mul<Output = C>,
 {
@@ -145,7 +145,7 @@ where
 
 /// Checks if a point `r` is on or in the rectangle parallel to the axes
 /// defined by the diagonal line segment `diagonal`.
-fn is_in_rectangle<C: Copy + PartialOrd>(p: Point<C>, diagonal: Segment<C>) -> bool {
+pub fn is_in_rectangle<C: Copy + PartialOrd>(p: Point<C>, diagonal: Segment<C>) -> bool {
     let Segment(c1, c2) = diagonal;
 
     let x_min = match c1.0.partial_cmp(&c2.0) {
