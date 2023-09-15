@@ -304,6 +304,29 @@ pub fn find_intersecting_segments_by(
     None
 }
 
+/// Computes the intersection of two lines, each of which is defined by two
+/// points. Returns `None` if the lines are parallel or coincident.
+pub fn intersection(a: &Segment<f64>, b: &Segment<f64>) -> Option<(f64, f64)> {
+    let x1 = a.0 .0;
+    let y1 = a.0 .1;
+    let x2 = a.1 .0;
+    let y2 = a.1 .1;
+
+    let x3 = b.0 .0;
+    let y3 = b.0 .1;
+    let x4 = b.1 .0;
+    let y4 = b.1 .1;
+
+    let denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if denominator == 0.0 {
+        // The lines are parallel or coincident.
+        return None;
+    }
+    let x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator;
+    let y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator;
+    Some((x, y))
+}
+
 #[cfg(test)]
 mod tests {
     use super::Segment;
