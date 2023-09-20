@@ -1,0 +1,14 @@
+[package]
+name = "cplibs-lca"
+version = "0.1.0"
+authors = ["Masooka <masooka@live.com>"]
+edition = "2021"
+repository = "https://github.com/masooka/cplibs"
+license = "0BSD"
+publish = false
+
+[lib]
+name = "lca"
+
+[dependencies]
+ac-library-rs-parted-dsu = { git = "https://github.com/qryxip/ac-library-rs-parted.git", version = "0.1.0" }
