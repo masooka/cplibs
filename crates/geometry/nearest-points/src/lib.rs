@@ -1,21 +1,69 @@
+use std::{
+    cmp::Ordering,
+    ops::{Add, Mul, Sub},
+};
+
+pub trait UpperBounded {
+    fn max_value() -> Self;
+}
+
+impl UpperBounded for i64 {
+    fn max_value() -> Self {
+        i64::MAX
+    }
+}
+
+impl UpperBounded for f64 {
+    fn max_value() -> Self {
+        f64::MAX
+    }
+}
+
 /// Finds the minimum distance between two points in `points` by divide and
 /// conquer.
-pub fn min_distance2(points: Vec<(i64, i64)>) -> i64 {
+///
+/// # Panics
+///
+/// Panics if `T::partial_cmp` returns `None`.
+pub fn min_distance2<T>(points: Vec<(T, T)>) -> T
+where
+    T: std::fmt::Debug
+        + Copy
+        + PartialOrd
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + UpperBounded,
+{
     let mut points = points;
-    points.sort_by_key(|&p| p.0);
+    points.sort_by(|p, q| match p.0.partial_cmp(&q.0).unwrap() {
+        Ordering::Equal => p.1.partial_cmp(&q.1).unwrap(),
+        ord => ord,
+    });
     min_distance2_inner(&mut points)
 }
 
-fn min_distance2_inner(points: &mut [(i64, i64)]) -> i64 {
+fn min_distance2_inner<T>(points: &mut [(T, T)]) -> T
+where
+    T: std::fmt::Debug
+        + Copy
+        + PartialOrd
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + UpperBounded,
+{
     if points.len() <= 3 {
-        let mut dist_min = i64::MAX;
+        let mut dist_min = T::max_value();
         for (i, &p) in points.iter().enumerate() {
             for &q in points.iter().skip(i + 1) {
-                let dist = (p.0 - q.0).pow(2) + (p.1 - q.1).pow(2);
-                dist_min = dist_min.min(dist);
+                let dist = (p.0 - q.0) * (p.0 - q.0) + (p.1 - q.1) * (p.1 - q.1);
+                if dist < dist_min {
+                    dist_min = dist;
+                }
             }
         }
-        points.sort_by_key(|&p| p.1);
+        points.sort_by(|&p, &q| p.1.partial_cmp(&q.1).unwrap());
         return dist_min;
     }
 
@@ -23,31 +71,40 @@ fn min_distance2_inner(points: &mut [(i64, i64)]) -> i64 {
     let x_mid = points[mid].0;
     let min_left = min_distance2_inner(&mut points[..mid]);
     let min_right = min_distance2_inner(&mut points[mid..]);
-    let mut dist_min = min_left.min(min_right);
+    let mut dist_min = if min_left < min_right {
+        min_left
+    } else {
+        min_right
+    };
     let mut tmp = merge_by_y(points[..mid].iter().copied(), points[mid..].iter().copied());
     points.copy_from_slice(&tmp);
 
     tmp.clear();
     for p in points {
-        if (p.0 - x_mid).pow(2) >= dist_min {
+        if (p.0 - x_mid) * (p.0 - x_mid) >= dist_min {
             continue;
         }
         for q in tmp.iter().rev() {
-            if (p.1 - q.1).pow(2) >= dist_min {
+            if (p.1 - q.1) * (p.1 - q.1) >= dist_min {
                 break;
             }
-            let dist = (p.0 - q.0).pow(2) + (p.1 - q.1).pow(2);
-            dist_min = dist_min.min(dist);
+            let dist = (p.0 - q.0) * (p.0 - q.0) + (p.1 - q.1) * (p.1 - q.1);
+            if dist < dist_min {
+                dist_min = dist;
+            }
         }
         tmp.push(*p);
     }
     dist_min
 }
 
-fn merge_by_y(
-    left: impl Iterator<Item = (i64, i64)>,
-    right: impl Iterator<Item = (i64, i64)>,
-) -> Vec<(i64, i64)> {
+fn merge_by_y<T>(
+    left: impl Iterator<Item = (T, T)>,
+    right: impl Iterator<Item = (T, T)>,
+) -> Vec<(T, T)>
+where
+    T: Copy + PartialOrd,
+{
     let mut left = left.peekable();
     let mut right = right.peekable();
     let mut merged = Vec::new();
