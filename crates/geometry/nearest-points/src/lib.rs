@@ -27,13 +27,7 @@ impl UpperBounded for f64 {
 /// Panics if `T::partial_cmp` returns `None`.
 pub fn min_distance2<T>(points: Vec<(T, T)>) -> T
 where
-    T: std::fmt::Debug
-        + Copy
-        + PartialOrd
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + UpperBounded,
+    T: Copy + PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + UpperBounded,
 {
     let mut points = points;
     points.sort_by(|p, q| match p.0.partial_cmp(&q.0).unwrap() {
@@ -45,13 +39,7 @@ where
 
 fn min_distance2_inner<T>(points: &mut [(T, T)]) -> T
 where
-    T: std::fmt::Debug
-        + Copy
-        + PartialOrd
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + UpperBounded,
+    T: Copy + PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + UpperBounded,
 {
     if points.len() <= 3 {
         let mut dist_min = T::max_value();
