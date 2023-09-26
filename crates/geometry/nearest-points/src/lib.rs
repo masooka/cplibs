@@ -1,6 +1,12 @@
 /// Finds the minimum distance between two points in `points` by divide and
 /// conquer.
-pub fn min_distance2(points: &mut [(i64, i64)]) -> i64 {
+pub fn min_distance2(points: Vec<(i64, i64)>) -> i64 {
+    let mut points = points;
+    points.sort_by_key(|&p| p.0);
+    min_distance2_inner(&mut points)
+}
+
+fn min_distance2_inner(points: &mut [(i64, i64)]) -> i64 {
     if points.len() <= 3 {
         let mut dist_min = i64::MAX;
         for (i, &p) in points.iter().enumerate() {
@@ -15,8 +21,8 @@ pub fn min_distance2(points: &mut [(i64, i64)]) -> i64 {
 
     let mid = points.len() / 2;
     let x_mid = points[mid].0;
-    let min_left = min_distance2(&mut points[..mid]);
-    let min_right = min_distance2(&mut points[mid..]);
+    let min_left = min_distance2_inner(&mut points[..mid]);
+    let min_right = min_distance2_inner(&mut points[mid..]);
     let mut dist_min = min_left.min(min_right);
     let mut tmp = merge_by_y(points[..mid].iter().copied(), points[mid..].iter().copied());
     points.copy_from_slice(&tmp);
