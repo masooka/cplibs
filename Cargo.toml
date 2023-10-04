@@ -1,3 +1,8 @@
 [workspace]
-members = ["crates/geometry/*", "crates/graph/*", "crates/string/*"]
+members = [
+    "crates/algebra/*",
+    "crates/geometry/*",
+    "crates/graph/*",
+    "crates/string/*",
+]
 resolver = "2"
