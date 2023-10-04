@@ -3,8 +3,14 @@ use std::ops::{Add, Mul, MulAssign, Sub};
 
 #[derive(Clone, Copy)]
 pub struct Complex {
-    re: f64,
-    im: f64,
+    pub re: f64,
+    pub im: f64,
+}
+
+impl Complex {
+    pub fn new(re: f64, im: f64) -> Self {
+        Self { re, im }
+    }
 }
 
 impl fmt::Debug for Complex {
