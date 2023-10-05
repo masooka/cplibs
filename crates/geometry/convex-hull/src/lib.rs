@@ -1,6 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use std::{
+    cmp::Ordering,
     mem,
     ops::{Mul, Sub},
 };
@@ -210,6 +211,35 @@ where
     }
 
     hull
+}
+
+pub fn antipodal_pairs(points: &Vec<(i64, i64)>) -> Vec<(usize, usize)> {
+    let n = points.len();
+    match n.cmp(&2) {
+        Ordering::Less => return vec![],
+        Ordering::Equal => return vec![(0, 1)],
+        _ => {}
+    }
+
+    let mut pairs = Vec::new();
+    let mut j = 1;
+
+    for i in 0..n {
+        let next_i = (i + 1) % n;
+
+        while {
+            let curr_area = cross_product(&points[i], &points[next_i], &points[j]);
+            let next_j = (j + 1) % n;
+            let next_area = cross_product(&points[i], &points[next_i], &points[next_j]);
+            next_area > curr_area
+        } {
+            j = (j + 1) % n;
+        }
+
+        pairs.push((i, j));
+    }
+
+    pairs
 }
 
 #[cfg(test)]
