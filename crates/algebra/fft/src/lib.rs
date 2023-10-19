@@ -109,3 +109,54 @@ pub fn fft(a: &mut [Complex], invert: bool) {
         }
     }
 }
+
+pub fn multiply_polynomials(a: &[u32], b: &[u32]) -> Vec<u32> {
+    let max_len = a.len() + b.len() - 1;
+    let mut a = a
+        .iter()
+        .map(|&x| Complex::new(f64::from(x), 0.0))
+        .collect::<Vec<_>>();
+    let mut b = b
+        .iter()
+        .map(|&x| Complex::new(f64::from(x), 0.0))
+        .collect::<Vec<_>>();
+
+    let n = max_len.next_power_of_two();
+    a.resize(n, Complex::new(0.0, 0.0));
+    b.resize(n, Complex::new(0.0, 0.0));
+
+    fft(&mut a, false);
+    fft(&mut b, false);
+    a.iter_mut().zip(b.iter()).for_each(|(x, &y)| *x *= y);
+    fft(&mut a, true);
+
+    let mut c = vec![0; n];
+    for i in 0..n {
+        c[i] = (a[i].re + 0.5) as u32;
+    }
+    c.truncate(max_len);
+    c
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn multiply_polynomials() {
+        use super::multiply_polynomials;
+
+        let a = vec![1, 2, 3];
+        let b = vec![4, 5, 6];
+        let c = multiply_polynomials(&a, &b);
+        assert_eq!(c, vec![4, 13, 28, 27, 18]);
+
+        let a = vec![1, 2];
+        let b = vec![3, 4];
+        let c = multiply_polynomials(&a, &b);
+        assert_eq!(c, vec![3, 10, 8]);
+
+        let a = vec![1];
+        let b = vec![3, 4];
+        let c = multiply_polynomials(&a, &b);
+        assert_eq!(c, vec![3, 4]);
+    }
+}
