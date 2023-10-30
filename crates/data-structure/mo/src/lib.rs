@@ -20,7 +20,7 @@ pub fn apply<C: Context, const B: usize>(queries: &[(usize, usize)], ctx: &mut C
         .enumerate()
         .map(|(idx, &(l, r))| Query { l, r, idx })
         .collect::<Vec<_>>();
-    queries.sort_by(|a, b| {
+    queries.sort_unstable_by(|a, b| {
         let block_a = a.l / B;
         let block_b = b.l / B;
         match block_a.cmp(&block_b) {
