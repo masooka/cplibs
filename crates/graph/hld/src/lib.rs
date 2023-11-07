@@ -23,6 +23,18 @@ impl HeavyLightDecomposition {
         hld
     }
 
+    pub fn head(&self, u: usize) -> usize {
+        self.head[u]
+    }
+
+    pub fn parent(&self, u: usize) -> usize {
+        self.parent[u]
+    }
+
+    pub fn pos(&self, u: usize) -> usize {
+        self.pos[u]
+    }
+
     /// Finds the heavy path from `u` and returns the size of the subtree rooted
     /// at `u`.
     fn dfs(&mut self, adj: &[Vec<usize>], u: usize) -> usize {

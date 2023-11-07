@@ -1,5 +1,5 @@
 [package]
-name = "cplibs-heavy-light-decomposition"
+name = "cplibs-hld"
 version = "0.1.0"
 authors = ["Masooka <masooka@live.com>"]
 edition = "2021"
