@@ -23,6 +23,10 @@ impl HeavyLightDecomposition {
         hld
     }
 
+    pub fn depth(&self, u: usize) -> usize {
+        self.depth[u]
+    }
+
     pub fn head(&self, u: usize) -> usize {
         self.head[u]
     }
