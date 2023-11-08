@@ -1,6 +1,6 @@
 [package]
 name = "cplibs-hld"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Masooka <masooka@live.com>"]
 edition = "2021"
 repository = "https://github.com/masooka/cplibs"
@@ -11,3 +11,4 @@ publish = false
 name = "hld"
 
 [dependencies]
+ac-library-rs-parted-segtree = { git = "https://github.com/qryxip/ac-library-rs-parted.git", version = "0.1.0" }

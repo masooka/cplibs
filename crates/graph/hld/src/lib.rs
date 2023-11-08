@@ -1,3 +1,7 @@
+use std::mem;
+
+use acl_segtree::{Monoid, Segtree};
+
 pub struct HeavyLightDecomposition {
     parent: Vec<usize>,
     depth: Vec<usize>,
@@ -72,6 +76,63 @@ impl HeavyLightDecomposition {
                 self.decompose(adj, v, v);
             }
         }
+    }
+}
+
+pub struct MonoidTree<M: Monoid> {
+    hld: HeavyLightDecomposition,
+    segtree: Segtree<M>,
+}
+
+impl<M: Monoid> MonoidTree<M> {
+    pub fn new(adj: &[Vec<usize>]) -> Self {
+        let hld = HeavyLightDecomposition::new(adj);
+        let segtree = Segtree::new(adj.len());
+        Self { hld, segtree }
+    }
+
+    pub fn set(&mut self, u: usize, x: M::S) {
+        self.segtree.set(self.hld.pos[u], x);
+    }
+
+    /// Computes the product of the values on the path from `u` to `v`, assuming
+    /// each node contains the value for the edge between its parent and itself.
+    pub fn edge_prod(&self, u: usize, v: usize) -> M::S {
+        let (prod, u, v) = self.inner_prod(u, v);
+        M::binary_operation(
+            &prod,
+            &self.segtree.prod(self.hld.pos(u) + 1, self.hld.pos(v) + 1),
+        )
+    }
+
+    /// Computes the product of the values of the nodes on the path from `u` to
+    /// `v`, including `u` and `v`.
+    pub fn node_prod(&self, u: usize, v: usize) -> M::S {
+        let (prod, u, v) = self.inner_prod(u, v);
+        M::binary_operation(
+            &prod,
+            &self.segtree.prod(self.hld.pos(u), self.hld.pos(v) + 1),
+        )
+    }
+
+    fn inner_prod(&self, mut u: usize, mut v: usize) -> (M::S, usize, usize) {
+        let mut prod = M::identity();
+        while self.hld.head(u) != self.hld.head(v) {
+            if self.hld.depth(self.hld.head(u)) > self.hld.depth(self.hld.head(v)) {
+                mem::swap(&mut u, &mut v);
+            }
+            prod = M::binary_operation(
+                &prod,
+                &self
+                    .segtree
+                    .prod(self.hld.pos(self.hld.head(v)), self.hld.pos(v) + 1),
+            );
+            v = self.hld.parent(self.hld.head(v));
+        }
+        if self.hld.depth(u) > self.hld.depth(v) {
+            mem::swap(&mut u, &mut v);
+        }
+        (prod, u, v)
     }
 }
 
